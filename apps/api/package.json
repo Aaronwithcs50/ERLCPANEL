@@ -10,11 +10,13 @@
     "test": "echo 'No tests yet for @erlcpanel/api'",
     "lint": "echo 'No lint script configured for @erlcpanel/api'",
     "format": "echo 'No format script configured for @erlcpanel/api'",
-    "typecheck": "echo 'No typecheck script configured for @erlcpanel/api'"
+    "typecheck": "echo 'No typecheck script configured for @erlcpanel/api'",
+    "tokens:provision-admin": "node scripts/provision-admin-token.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "@packages/db": "file:../../packages/db"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
