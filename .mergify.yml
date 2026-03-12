@@ -19,3 +19,6 @@ pull_request_rules:
     conditions: []
     actions:
       rebase:
+queue_rules:
+  - name: queue
+    batch_size: 10
