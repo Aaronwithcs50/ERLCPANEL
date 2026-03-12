@@ -1,3 +1,4 @@
+import { createApiApp } from './app.js';
 import express from 'express';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rateLimit.js';
@@ -20,8 +21,11 @@ app.use((err, _req, res, _next) => {
   return sendError(res, 'INTERNAL_SERVER_ERROR', 'Unexpected server error', { status: 500 });
 });
 
+const app = createApiApp();
 const port = Number(process.env.PORT || 3000);
 
+app.listen(port, () => {
+  console.log(`ERLCPANEL API listening on :${port}`);
 async function bootstrapAdminTokenIfRequested() {
   if (process.env.API_TOKEN_BOOTSTRAP_ON_STARTUP !== 'true') {
     return;

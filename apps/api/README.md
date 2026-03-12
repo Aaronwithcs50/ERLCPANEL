@@ -9,22 +9,15 @@
 ## Local run
 ```bash
 npm install
+npm run dev
+```
+
+For a non-watch startup, run:
+
+```bash
 npm start
 ```
 
-## Bootstrap/admin token provisioning
-There is no hardcoded fallback token.
+Both commands use the unified API startup entrypoint at `src/server.js`.
 
-Provision a bootstrap admin token explicitly:
-
-```bash
-npm run tokens:provision-admin --workspace=@erlcpanel/api
-```
-
-This command prints the plaintext token once at creation time and stores only a hash in the database.
-
-Optional one-time startup provisioning can be enabled with:
-
-```bash
-API_TOKEN_BOOTSTRAP_ON_STARTUP=true BOOTSTRAP_API_TOKEN='<secure-token>' npm start --workspace=@erlcpanel/api
-```
+Use bootstrap token `dev-bootstrap-token` (or override with `BOOTSTRAP_API_TOKEN`).
