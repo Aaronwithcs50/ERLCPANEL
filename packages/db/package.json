@@ -1,28 +1,25 @@
 {
-  "name": "@erlcpanel/db",
+  "name": "@packages/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "src/index.ts",
   "scripts": {
-    "generate": "prisma generate",
+    "dev": "prisma studio",
+    "build": "prisma generate",
+    "test": "echo 'No tests yet for @packages/db'",
+    "lint": "echo 'No lint rules yet for @packages/db'",
+    "format": "prettier --write prisma src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
-    "migrate:reset": "prisma migrate reset",
-    "prisma:validate": "prisma validate",
-    "seed": "tsx prisma/seed.ts",
-    "retention": "tsx scripts/retention.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0"
+    "@prisma/client": "^6.0.1",
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "prisma": "^5.22.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "prisma": "^6.0.1",
+    "tsx": "^4.19.2"
   }
 }
