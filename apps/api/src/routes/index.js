@@ -1,62 +1,163 @@
 import { Router } from 'express';
 import { ApiToken } from '../models/apiToken.js';
+import { configService } from '../services/configService.js';
+import { moderationService } from '../services/moderationService.js';
+import { BackendUnavailableError } from '../services/serviceErrors.js';
+import { shiftService } from '../services/shiftService.js';
 import { paginate } from '../utils/pagination.js';
 import { sendError, sendSuccess } from '../utils/response.js';
 
 const router = Router();
 
-const moderationHistory = [
-  { id: 'm1', action: 'warn', moderator: 'mod_1', target: 'user_44', createdAt: '2026-01-10T10:00:00Z' },
-  { id: 'm2', action: 'ban', moderator: 'mod_2', target: 'user_18', createdAt: '2026-01-11T14:15:00Z' },
-  { id: 'm3', action: 'mute', moderator: 'mod_1', target: 'user_19', createdAt: '2026-01-12T18:30:00Z' }
-];
+function validatePaginationQuery(query) {
+  const page = query.page === undefined ? undefined : Number(query.page);
+  const limit = query.limit === undefined ? undefined : Number(query.limit);
 
-const shiftEvents = [
-  { id: 's1', type: 'start', userId: 'staff_1', at: '2026-01-12T09:00:00Z' },
-  { id: 's2', type: 'break', userId: 'staff_1', at: '2026-01-12T12:00:00Z' },
-  { id: 's3', type: 'end', userId: 'staff_1', at: '2026-01-12T17:00:00Z' }
-];
-
-const config = {
-  serverId: 'server_001',
-  locale: 'en-US',
-  roles: {
-    admin: 'role_admin',
-    moderator: 'role_mod',
-    trainee: 'role_trainee'
-  },
-  channels: {
-    logs: 'channel_logs',
-    shifts: 'channel_shifts',
-    appeals: 'channel_appeals'
+  if (query.page !== undefined && (!Number.isInteger(page) || page < 1)) {
+    return 'Query parameter "page" must be an integer >= 1';
   }
-};
 
-router.get('/moderation/history', (req, res) => {
-  const { data, pagination } = paginate(moderationHistory, req.query.page, req.query.limit);
-  return sendSuccess(res, data, { pagination });
+  if (query.limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
+    return 'Query parameter "limit" must be an integer between 1 and 100';
+  }
+
+  return null;
+}
+
+function validateModerationQuery(query) {
+  const paginationError = validatePaginationQuery(query);
+  if (paginationError) return paginationError;
+
+  const validActions = new Set(['warn', 'ban', 'mute']);
+  if (query.action !== undefined && !validActions.has(query.action)) {
+    return 'Query parameter "action" must be one of: warn, ban, mute';
+  }
+
+  return null;
+}
+
+function validateShiftQuery(query) {
+  const paginationError = validatePaginationQuery(query);
+  if (paginationError) return paginationError;
+
+  const validTypes = new Set(['start', 'break', 'end']);
+  if (query.type !== undefined && !validTypes.has(query.type)) {
+    return 'Query parameter "type" must be one of: start, break, end';
+  }
+
+  return null;
+}
+
+function validateTokenRequestBody(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return 'Request body must be a JSON object';
+  }
+
+  const { label, scopes, ttlMs } = body;
+
+  if (label !== undefined && (typeof label !== 'string' || label.trim().length === 0)) {
+    return 'Body parameter "label" must be a non-empty string';
+  }
+
+  if (scopes !== undefined && (!Array.isArray(scopes) || scopes.some((scope) => typeof scope !== 'string' || scope.length === 0))) {
+    return 'Body parameter "scopes" must be an array of non-empty strings';
+  }
+
+  if (ttlMs !== undefined && (!Number.isInteger(ttlMs) || ttlMs <= 0)) {
+    return 'Body parameter "ttlMs" must be a positive integer';
+  }
+
+  return null;
+}
+
+function handleServiceError(res, error) {
+  if (error instanceof BackendUnavailableError) {
+    return sendError(res, 'BACKEND_UNAVAILABLE', `${error.service} service backend is unavailable`, {
+      status: 503,
+      details: {
+        service: error.service,
+        backend: error.backend
+      }
+    });
+  }
+
+  return sendError(res, 'INTERNAL_ERROR', 'Unexpected service failure', {
+    status: 500,
+    details: { message: error.message }
+  });
+}
+
+router.get('/moderation/history', async (req, res) => {
+  const validationError = validateModerationQuery(req.query);
+  if (validationError) {
+    return sendError(res, 'INVALID_QUERY', validationError, { status: 400 });
+  }
+
+  try {
+    const records = await moderationService.getHistory({
+      action: req.query.action,
+      moderator: req.query.moderator,
+      target: req.query.target
+    });
+    const { data, pagination } = paginate(records, req.query.page, req.query.limit);
+    return sendSuccess(res, data, { pagination });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
 });
 
-router.get('/moderation/statistics', (_req, res) => {
-  const stats = moderationHistory.reduce(
-    (acc, item) => {
-      acc.total += 1;
-      acc.byAction[item.action] = (acc.byAction[item.action] || 0) + 1;
-      return acc;
-    },
-    { total: 0, byAction: {} }
-  );
-  return sendSuccess(res, stats);
+router.get('/moderation/statistics', async (req, res) => {
+  const validationError = validateModerationQuery(req.query);
+  if (validationError) {
+    return sendError(res, 'INVALID_QUERY', validationError, { status: 400 });
+  }
+
+  try {
+    const stats = await moderationService.getStatistics({
+      action: req.query.action,
+      moderator: req.query.moderator,
+      target: req.query.target
+    });
+    return sendSuccess(res, stats);
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
 });
 
-router.get('/shifts/history', (req, res) => {
-  const { data, pagination } = paginate(shiftEvents, req.query.page, req.query.limit);
-  return sendSuccess(res, data, { pagination });
+router.get('/shifts/history', async (req, res) => {
+  const validationError = validateShiftQuery(req.query);
+  if (validationError) {
+    return sendError(res, 'INVALID_QUERY', validationError, { status: 400 });
+  }
+
+  try {
+    const records = await shiftService.getEvents({
+      type: req.query.type,
+      userId: req.query.userId
+    });
+    const { data, pagination } = paginate(records, req.query.page, req.query.limit);
+    return sendSuccess(res, data, { pagination });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
 });
 
-router.get('/shifts/events', (req, res) => {
-  const { data, pagination } = paginate(shiftEvents, req.query.page, req.query.limit);
-  return sendSuccess(res, data, { pagination });
+router.get('/shifts/events', async (req, res) => {
+  const validationError = validateShiftQuery(req.query);
+  if (validationError) {
+    return sendError(res, 'INVALID_QUERY', validationError, { status: 400 });
+  }
+
+  try {
+    const records = await shiftService.getEvents({
+      type: req.query.type,
+      userId: req.query.userId
+    });
+    const { data, pagination } = paginate(records, req.query.page, req.query.limit);
+    return sendSuccess(res, data, { pagination });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
 });
 
 router.get('/activity/summaries', (_req, res) => {
@@ -83,14 +184,30 @@ router.get('/activity/reports/yearly/:year', (req, res) => {
   });
 });
 
-router.get('/server/configuration', (_req, res) => sendSuccess(res, config));
+router.get('/server/configuration', async (_req, res) => {
+  try {
+    const configuration = await configService.getConfiguration();
+    return sendSuccess(res, configuration);
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
 
-router.get('/server/mappings', (_req, res) => sendSuccess(res, {
-  roles: config.roles,
-  channels: config.channels
-}));
+router.get('/server/mappings', async (_req, res) => {
+  try {
+    const mappings = await configService.getMappings();
+    return sendSuccess(res, mappings);
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
 
 router.post('/tokens', (req, res) => {
+  const validationError = validateTokenRequestBody(req.body);
+  if (validationError) {
+    return sendError(res, 'INVALID_BODY', validationError, { status: 400 });
+  }
+
   const { label, scopes, ttlMs } = req.body || {};
   const { record, rawToken } = ApiToken.create({ label, scopes, ttlMs });
   return sendSuccess(res, { token: rawToken, tokenInfo: record }, { status: 201 });
