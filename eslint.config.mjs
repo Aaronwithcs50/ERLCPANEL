@@ -4,7 +4,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['node_modules/**', 'dist/**', 'coverage/**', 'docs/site/**', '.next/**'],
+    ignores: ['dist/**', 'coverage/**', 'docs/site/**', '**/.next/**', '**/node_modules/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -34,7 +34,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/**/*.ts', 'tests/**/*.ts'],
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
@@ -43,6 +43,7 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
+      'no-undef': 'off',
     },
   },
   eslintConfigPrettier,
