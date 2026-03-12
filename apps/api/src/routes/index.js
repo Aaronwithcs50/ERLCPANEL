@@ -213,14 +213,24 @@ router.post('/tokens', (req, res) => {
   return sendSuccess(res, { token: rawToken, tokenInfo: record }, { status: 201 });
 });
 
-router.delete('/tokens/:id', (req, res) => {
-  const revoked = ApiToken.revoke(req.params.id);
-  if (!revoked) {
-    return sendError(res, 'NOT_FOUND', 'Token not found or already revoked', { status: 404 });
+router.delete('/tokens/:id', async (req, res, next) => {
+  try {
+    const revoked = await ApiToken.revoke(req.params.id);
+    if (!revoked) {
+      return sendError(res, 'NOT_FOUND', 'Token not found or already revoked', { status: 404 });
+    }
+    return sendSuccess(res, revoked);
+  } catch (error) {
+    return next(error);
   }
-  return sendSuccess(res, revoked);
 });
 
-router.get('/tokens', (_req, res) => sendSuccess(res, ApiToken.list()));
+router.get('/tokens', async (_req, res, next) => {
+  try {
+    return sendSuccess(res, await ApiToken.list());
+  } catch (error) {
+    return next(error);
+  }
+});
 
 export default router;

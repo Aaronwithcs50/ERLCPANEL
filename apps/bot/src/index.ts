@@ -22,6 +22,7 @@ import { moderationCommands } from "./features/moderation/index.js";
 import { shiftsCommands } from "./features/shifts/index.js";
 import { activityCommands } from "./features/activity/index.js";
 import { ticketCommands } from "./features/tickets/index.js";
+import { logger } from "./utils/logger.js";
 
 const token = process.env.DISCORD_TOKEN;
 const applicationId = process.env.DISCORD_APPLICATION_ID;
@@ -93,36 +94,109 @@ client.on("messageCreate", async (message: Message) => {
   const remaining = cooldowns.getRemainingSeconds(message.author.id, command);
   if (remaining > 0) {
     await message.reply(`Please wait ${remaining}s before using this command again.`);
-    await audit.onDenied(message.author.id, command, `Cooldown ${remaining}s`, "prefix");
+    await safeAuditDenied(message.author.id, command.name, `Cooldown ${remaining}s`, "prefix");
     return;
   }
 
   cooldowns.markUsed(message.author.id, command);
-  await command.handlePrefix({ message, args, settings });
-  await audit.onAllowed(message.author.id, command, "prefix");
+
+  try {
+    await command.handlePrefix({ message, args, settings });
+  } catch (error) {
+    logger.commandError("Prefix command execution failed", {
+      commandName: command.name,
+      userId: message.author.id,
+      origin: "prefix",
+      error,
+    });
+    await message.reply("Something went wrong while running that command.");
+    return;
+  }
+
+  await safeAuditAllowed(message.author.id, command.name, "prefix");
 });
 
 async function executeSlashCommand(interaction: ChatInputCommandInteraction): Promise<void> {
   const command = registry.getByName(interaction.commandName);
   if (!command?.handleSlash) return;
 
-  const member = interaction.member;
-  if (!(member instanceof GuildMember)) return;
+  try {
+    const member = interaction.member;
+    if (!(member instanceof GuildMember)) return;
 
-  if (!(await runGuards(member, interaction.user.id, command.name, interaction))) {
+    if (!(await runGuards(member, interaction.user.id, command.name, interaction))) {
+      return;
+    }
+
+    const remaining = cooldowns.getRemainingSeconds(interaction.user.id, command);
+    if (remaining > 0) {
+      await interaction.reply({ content: `Please wait ${remaining}s before reusing this command.`, ephemeral: true });
+      await safeAuditDenied(interaction.user.id, command.name, `Cooldown ${remaining}s`, "slash");
+      return;
+    }
+
+    cooldowns.markUsed(interaction.user.id, command);
+    await command.handleSlash({ interaction, settings });
+    await safeAuditAllowed(interaction.user.id, command.name, "slash");
+  } catch (error) {
+    logger.commandError("Slash command execution failed", {
+      commandName: command.name,
+      userId: interaction.user.id,
+      origin: "slash",
+      error,
+    });
+    await replyWithSafeSlashFallback(interaction, "Something went wrong while running that command.");
+  }
+}
+
+
+async function safeAuditAllowed(userId: string, commandName: string, origin: "slash" | "prefix"): Promise<void> {
+  const command = registry.getByName(commandName);
+  if (!command) return;
+
+  try {
+    await audit.onAllowed(userId, command, origin);
+  } catch (error) {
+    logger.commandError("Audit allow logging failed", {
+      commandName,
+      userId,
+      origin,
+      error,
+    });
+  }
+}
+
+async function safeAuditDenied(
+  userId: string,
+  commandName: string,
+  reason: string,
+  origin: "slash" | "prefix",
+): Promise<void> {
+  const command = registry.getByName(commandName);
+  if (!command) return;
+
+  try {
+    await audit.onDenied(userId, command, reason, origin);
+  } catch (error) {
+    logger.commandError("Audit deny logging failed", {
+      commandName,
+      userId,
+      origin,
+      error,
+    });
+  }
+}
+
+async function replyWithSafeSlashFallback(
+  interaction: ChatInputCommandInteraction,
+  content: string,
+): Promise<void> {
+  if (interaction.replied || interaction.deferred) {
+    await interaction.followUp({ content, ephemeral: true });
     return;
   }
 
-  const remaining = cooldowns.getRemainingSeconds(interaction.user.id, command);
-  if (remaining > 0) {
-    await interaction.reply({ content: `Please wait ${remaining}s before reusing this command.`, ephemeral: true });
-    await audit.onDenied(interaction.user.id, command, `Cooldown ${remaining}s`, "slash");
-    return;
-  }
-
-  cooldowns.markUsed(interaction.user.id, command);
-  await command.handleSlash({ interaction, settings });
-  await audit.onAllowed(interaction.user.id, command, "slash");
+  await interaction.reply({ content, ephemeral: true });
 }
 
 async function runGuards(
@@ -138,11 +212,21 @@ async function runGuards(
     if (interaction) {
       await interaction.reply({ content: "You do not have permission to use this command.", ephemeral: true });
     }
-    await audit.onDenied(userId, command, "RBAC", interaction ? "slash" : "prefix");
+    await safeAuditDenied(userId, command.name, "RBAC", interaction ? "slash" : "prefix");
     return false;
   }
 
   return true;
 }
+
+client.on("error", (error) => {
+  logger.error("Discord client error", { errorStack: error.stack ?? error.message });
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled rejection", {
+    errorStack: reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),
+  });
+});
 
 client.login(token);
