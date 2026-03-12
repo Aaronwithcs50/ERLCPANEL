@@ -1,0 +1,490 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ModerationActionType {
+  WARN
+  MUTE
+  UNMUTE
+  KICK
+  BAN
+  UNBAN
+  NOTE
+}
+
+enum ModerationTargetType {
+  MEMBER
+  DISCORD_ACCOUNT
+  ROBLOX_ACCOUNT
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  REVIEWING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum LOAStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
+enum ShiftEventType {
+  START
+  END
+  BREAK_START
+  BREAK_END
+  CORRECTION
+}
+
+enum ActivityEventType {
+  COMMAND
+  MODERATION
+  SHIFT
+  APPLICATION
+  SYSTEM
+}
+
+enum IncidentStatus {
+  OPEN
+  MONITORING
+  RESOLVED
+}
+
+enum ServiceState {
+  OPERATIONAL
+  DEGRADED
+  OUTAGE
+}
+
+model Guild {
+  id        String   @id @db.VarChar(64)
+  name      String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members              Member[]
+  applications         Application[]
+  joinRequests         JoinRequest[]
+  loaRequests          LOARequest[]
+  moderationActions    ModerationAction[]
+  moderationStatistics ModerationStatistic[]
+  shifts               Shift[]
+  shiftEvents          ShiftEvent[]
+  activityEvents       ActivityEvent[]
+  leaderboardSnapshots LeaderboardSnapshot[]
+  settings             GuildSettings?
+  roleMappings         RoleMapping[]
+  channelMappings      ChannelMapping[]
+  featureFlags         FeatureFlag[]
+  apiTokens            ApiToken[]
+  webhookSubs          WebhookSubscription[]
+  incidents            Incident[]
+  serviceUptime        ServiceUptime[]
+  accountLinks         AccountLink[]
+
+  @@index([createdAt])
+}
+
+model Member {
+  id            String    @id @default(cuid())
+  guildId       String    @db.VarChar(64)
+  discordUserId String?   @db.VarChar(64)
+  robloxUserId  String?   @db.VarChar(64)
+  displayName   String?   @db.VarChar(255)
+  joinedAt      DateTime  @default(now())
+  leftAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  guild             Guild              @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordAccount    DiscordAccount?    @relation(fields: [discordUserId], references: [discordUserId])
+  robloxAccount     RobloxAccount?     @relation(fields: [robloxUserId], references: [robloxUserId])
+  moderationActions ModerationAction[]
+  shifts            Shift[]
+  applications      Application[]
+  joinRequests      JoinRequest[]
+  loaRequests       LOARequest[]
+
+  @@unique([guildId, discordUserId])
+  @@unique([guildId, robloxUserId])
+  @@index([guildId, joinedAt, id])
+  @@index([guildId, leftAt])
+}
+
+model DiscordAccount {
+  id            String   @id @default(cuid())
+  discordUserId String   @unique @db.VarChar(64)
+  username      String   @db.VarChar(255)
+  globalName    String?  @db.VarChar(255)
+  avatarUrl     String?  @db.VarChar(2048)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  members      Member[]
+  accountLinks AccountLink[]
+
+  @@index([username])
+}
+
+model RobloxAccount {
+  id           String   @id @default(cuid())
+  robloxUserId String   @unique @db.VarChar(64)
+  username     String   @db.VarChar(255)
+  displayName  String?  @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  members      Member[]
+  accountLinks AccountLink[]
+
+  @@index([username])
+}
+
+model AccountLink {
+  id               String    @id @default(cuid())
+  guildId          String    @db.VarChar(64)
+  discordAccountId String
+  robloxAccountId  String
+  linkedByMemberId String?
+  isPrimary        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  unlinkedAt       DateTime?
+
+  guild          Guild          @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  discordAccount DiscordAccount @relation(fields: [discordAccountId], references: [id], onDelete: Cascade)
+  robloxAccount  RobloxAccount  @relation(fields: [robloxAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, discordAccountId, robloxAccountId])
+  @@index([guildId, createdAt, id])
+}
+
+model ModerationAction {
+  id            String               @id @default(cuid())
+  guildId       String               @db.VarChar(64)
+  memberId      String?
+  actionType    ModerationActionType
+  targetType    ModerationTargetType
+  targetId      String               @db.VarChar(64)
+  reason        String?
+  performedById String?              @db.VarChar(64)
+  expiresAt     DateTime?
+  createdAt     DateTime             @default(now())
+
+  guild   Guild               @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  member  Member?             @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  history ModerationHistory[]
+
+  @@index([guildId, createdAt, id])
+  @@index([guildId, targetId, createdAt])
+  @@index([guildId, actionType, createdAt])
+}
+
+model ModerationHistory {
+  id                 String   @id @default(cuid())
+  moderationActionId String
+  previousReason     String?
+  newReason          String?
+  changedById        String?  @db.VarChar(64)
+  changedAt          DateTime @default(now())
+
+  moderationAction ModerationAction @relation(fields: [moderationActionId], references: [id], onDelete: Cascade)
+
+  @@index([moderationActionId, changedAt])
+}
+
+model ModerationStatistic {
+  id          String               @id @default(cuid())
+  guildId     String               @db.VarChar(64)
+  memberId    String               @db.VarChar(64)
+  actionType  ModerationActionType
+  count       Int                  @default(0)
+  periodStart DateTime
+  periodEnd   DateTime
+  updatedAt   DateTime             @updatedAt
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, memberId, actionType, periodStart, periodEnd])
+  @@index([guildId, periodStart, periodEnd])
+  @@index([guildId, actionType, count(sort: Desc)])
+}
+
+model Shift {
+  id               String    @id @default(cuid())
+  guildId          String    @db.VarChar(64)
+  memberId         String
+  startedAt        DateTime
+  endedAt          DateTime?
+  totalDurationSec Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  guild  Guild        @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  member Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  breaks ShiftBreak[]
+  events ShiftEvent[]
+
+  @@index([guildId, startedAt, id])
+  @@index([guildId, memberId, startedAt])
+  @@index([guildId, endedAt])
+}
+
+model ShiftBreak {
+  id          String    @id @default(cuid())
+  shiftId     String
+  startedAt   DateTime
+  endedAt     DateTime?
+  durationSec Int       @default(0)
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([shiftId, startedAt])
+}
+
+model ShiftEvent {
+  id        String         @id @default(cuid())
+  guildId   String         @db.VarChar(64)
+  shiftId   String
+  eventType ShiftEventType
+  metadata  Json?
+  createdAt DateTime       @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, createdAt, id])
+  @@index([guildId, shiftId, createdAt])
+  @@index([guildId, eventType, createdAt])
+}
+
+model ActivityEvent {
+  id        BigInt            @id @default(autoincrement())
+  guildId   String            @db.VarChar(64)
+  memberId  String?           @db.VarChar(64)
+  eventType ActivityEventType
+  source    String            @db.VarChar(64)
+  payload   Json?
+  createdAt DateTime          @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([guildId, memberId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([guildId, eventType, createdAt(sort: Desc)])
+}
+
+model LeaderboardSnapshot {
+  id          String   @id @default(cuid())
+  guildId     String   @db.VarChar(64)
+  metric      String   @db.VarChar(64)
+  memberId    String   @db.VarChar(64)
+  value       Float
+  rank        Int
+  periodStart DateTime
+  periodEnd   DateTime
+  capturedAt  DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, metric, periodStart, periodEnd, rank])
+  @@index([guildId, metric, value(sort: Desc)])
+  @@index([guildId, capturedAt])
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  guildId     String            @db.VarChar(64)
+  memberId    String
+  formKey     String            @db.VarChar(64)
+  status      ApplicationStatus @default(DRAFT)
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  guild     Guild                 @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  member    Member                @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  responses ApplicationResponse[]
+
+  @@index([guildId, status, createdAt, id])
+  @@index([guildId, memberId, createdAt])
+}
+
+model ApplicationResponse {
+  id            String   @id @default(cuid())
+  applicationId String
+  questionKey   String   @db.VarChar(128)
+  answer        String
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, questionKey])
+  @@index([applicationId, createdAt])
+}
+
+model JoinRequest {
+  id          String            @id @default(cuid())
+  guildId     String            @db.VarChar(64)
+  memberId    String
+  status      JoinRequestStatus @default(PENDING)
+  message     String?
+  requestedAt DateTime          @default(now())
+  resolvedAt  DateTime?
+
+  guild  Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, status, requestedAt, id])
+}
+
+model LOARequest {
+  id          String    @id @default(cuid())
+  guildId     String    @db.VarChar(64)
+  memberId    String
+  status      LOAStatus @default(PENDING)
+  reason      String?
+  startDate   DateTime
+  endDate     DateTime
+  requestedAt DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  guild  Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, status, requestedAt, id])
+  @@index([guildId, startDate, endDate])
+}
+
+model GuildSettings {
+  guildId                 String   @id @db.VarChar(64)
+  locale                  String   @default("en-US") @db.VarChar(16)
+  timezone                String   @default("UTC") @db.VarChar(64)
+  activityRetentionDays   Int      @default(90)
+  shiftEventRetentionDays Int      @default(180)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+}
+
+model RoleMapping {
+  id        String   @id @default(cuid())
+  guildId   String   @db.VarChar(64)
+  key       String   @db.VarChar(64)
+  roleId    String   @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, key])
+  @@index([guildId, roleId])
+}
+
+model ChannelMapping {
+  id        String   @id @default(cuid())
+  guildId   String   @db.VarChar(64)
+  key       String   @db.VarChar(64)
+  channelId String   @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, key])
+  @@index([guildId, channelId])
+}
+
+model FeatureFlag {
+  id        String   @id @default(cuid())
+  guildId   String   @db.VarChar(64)
+  key       String   @db.VarChar(64)
+  enabled   Boolean  @default(false)
+  rollout   Int      @default(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, key])
+  @@index([guildId, enabled])
+}
+
+model ApiToken {
+  id         String    @id @default(cuid())
+  guildId    String    @db.VarChar(64)
+  name       String    @db.VarChar(128)
+  tokenHash  String    @unique @db.VarChar(255)
+  scopes     String[]
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, createdAt])
+  @@index([guildId, revokedAt])
+}
+
+model WebhookSubscription {
+  id              String    @id @default(cuid())
+  guildId         String    @db.VarChar(64)
+  event           String    @db.VarChar(64)
+  endpoint        String    @db.VarChar(2048)
+  secretHash      String    @db.VarChar(255)
+  isActive        Boolean   @default(true)
+  lastDeliveredAt DateTime?
+  createdAt       DateTime  @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, event, isActive])
+}
+
+model Incident {
+  id          String         @id @default(cuid())
+  guildId     String         @db.VarChar(64)
+  title       String         @db.VarChar(255)
+  description String?
+  status      IncidentStatus @default(OPEN)
+  startedAt   DateTime       @default(now())
+  resolvedAt  DateTime?
+  createdAt   DateTime       @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, status, startedAt])
+}
+
+model ServiceUptime {
+  id         String       @id @default(cuid())
+  guildId    String       @db.VarChar(64)
+  serviceKey String       @db.VarChar(64)
+  state      ServiceState
+  observedAt DateTime     @default(now())
+  responseMs Int?
+  errorCode  String?      @db.VarChar(64)
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, serviceKey, observedAt(sort: Desc)])
+  @@index([guildId, state, observedAt(sort: Desc)])
+}

@@ -2,3 +2,6 @@ node_modules
 dist
 coverage
 docs/site
+node_modules/
+.env
+.DS_Store
