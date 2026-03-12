@@ -10,7 +10,7 @@ export function createApiApp() {
   app.use(express.json());
   app.use(withTrace);
 
-  app.get('/health', (_req, res) => sendSuccess(res, { status: 'ok' }));
+  app.get('/health', rateLimitMiddleware, (_req, res) => sendSuccess(res, { status: 'ok' }));
 
   app.use('/v1', authMiddleware, rateLimitMiddleware, routes);
 
