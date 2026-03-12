@@ -1,19 +1,22 @@
+# Dependencies
 node_modules/
-__pycache__/
-*.pyc
-node_modules
-dist
-coverage
-docs/site
-.pnpm-store
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+coverage/
+docs/site/
+
+# Environment files
 .env
 .env.*
 !.env.example
-.next
-dist
-coverage
-.DS_Store
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Logs and OS files
 *.log
-node_modules/
-.env
 .DS_Store
