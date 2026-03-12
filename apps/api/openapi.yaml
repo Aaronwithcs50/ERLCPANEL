@@ -1,0 +1,113 @@
+openapi: 3.1.0
+info:
+  title: ERLCPANEL API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ResponseEnvelope:
+      type: object
+      required: [success, traceId]
+      properties:
+        success:
+          type: boolean
+        data:
+          nullable: true
+        error:
+          $ref: '#/components/schemas/ErrorObject'
+        pagination:
+          $ref: '#/components/schemas/PaginationMeta'
+        traceId:
+          type: string
+    ErrorObject:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          nullable: true
+    PaginationMeta:
+      type: object
+      required: [page, limit, total, totalPages]
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        totalPages: { type: integer }
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      security: []
+      responses:
+        '200':
+          description: OK
+  /v1/moderation/history:
+    get:
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: limit
+          schema: { type: integer }
+      responses:
+        '200': { description: Moderation records }
+  /v1/moderation/statistics:
+    get:
+      responses:
+        '200': { description: Moderation stats }
+  /v1/shifts/history:
+    get:
+      responses:
+        '200': { description: Shift history }
+  /v1/shifts/events:
+    get:
+      responses:
+        '200': { description: Shift events }
+  /v1/activity/summaries:
+    get:
+      responses:
+        '200': { description: Activity summary }
+  /v1/activity/reports/yearly/{year}:
+    get:
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Yearly report }
+  /v1/server/configuration:
+    get:
+      responses:
+        '200': { description: Server configuration }
+  /v1/server/mappings:
+    get:
+      responses:
+        '200': { description: Role/channel mappings }
+  /v1/tokens:
+    get:
+      responses:
+        '200': { description: Token list }
+    post:
+      responses:
+        '201': { description: Generate token }
+  /v1/tokens/{id}:
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Revoke token }
