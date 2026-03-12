@@ -20,11 +20,13 @@ async function main() {
     return;
   }
 
+  // The plaintext token is printed to stderr to discourage logging it; the structured JSON omits the secret.
+  console.error('BOOTSTRAP_API_TOKEN (sensitive, do NOT store in logs):', result.rawToken);
+
   console.log(JSON.stringify({
     created: true,
-    token: result.rawToken,
     tokenInfo: result.record,
-    warning: 'Save this plaintext token now. It is not stored and cannot be retrieved again.'
+    warning: 'A new bootstrap token has been created. The plaintext token was printed separately and is not stored.'
   }, null, 2));
 }
 
