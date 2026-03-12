@@ -1,3 +1,13 @@
+node_modules
+.pnpm-store
+.env
+.env.*
+!.env.example
+.next
+dist
+coverage
+.DS_Store
+*.log
 node_modules/
 .env
 .DS_Store

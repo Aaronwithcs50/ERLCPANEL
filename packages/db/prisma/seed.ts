@@ -1,8 +1,16 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: { email: 'admin@example.com' }
+  });
+
+  console.log('[db] seed complete');
   const guild = await prisma.guild.upsert({
     where: { id: 'seed-guild' },
     update: { name: 'Seed Guild' },
@@ -80,6 +88,7 @@ async function main() {
 
 main()
   .catch((error) => {
+    console.error('[db] seed failed', error);
     console.error(error);
     process.exit(1);
   })
