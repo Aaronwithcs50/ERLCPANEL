@@ -1,0 +1,8 @@
+dist
+coverage
+docs/site
+node_modules
+dist
+.next
+coverage
+pnpm-lock.yaml

@@ -1,28 +1,22 @@
 {
-  "name": "@erlcpanel/api",
+  "name": "@apps/bot",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "check": "node --check src/server.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2"
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "test": "echo 'No tests yet for @apps/api'",
+    "test": "echo 'No tests yet for @apps/bot'",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
-    "@types/express": "^4.17.21"
+    "tsx": "^4.19.2"
   }
 }
