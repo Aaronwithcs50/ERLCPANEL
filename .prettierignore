@@ -1,3 +1,6 @@
+dist
+coverage
+docs/site
 node_modules
 dist
 .next
