@@ -4,25 +4,20 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "check": "node --check src/server.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2"
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
-    "test": "echo 'No tests yet for @apps/api'",
-    "lint": "eslint src --ext .ts",
-    "format": "prettier --write src",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "check": "node --check src/server.js",
+    "test": "echo 'No tests yet for @erlcpanel/api'",
+    "lint": "echo 'No lint script configured for @erlcpanel/api'",
+    "format": "echo 'No format script configured for @erlcpanel/api'",
+    "typecheck": "echo 'No typecheck script configured for @erlcpanel/api'"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "tsx": "^4.19.2"
   }
 }
