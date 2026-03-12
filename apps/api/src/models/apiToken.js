@@ -4,6 +4,8 @@ import { db } from '@packages/db';
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const DEFAULT_BOOTSTRAP_GUILD_ID = process.env.API_TOKEN_GUILD_ID || 'bootstrap-guild';
 const DEFAULT_BOOTSTRAP_GUILD_NAME = process.env.API_TOKEN_GUILD_NAME || 'ERLCPANEL Bootstrap Guild';
+const TOKEN_HASH_SALT = 'api-token-hash-v1';
+const TOKEN_HASH_ITERATIONS = 100_000;
 
 function toPublicTokenRecord(record) {
   return {
@@ -21,7 +23,9 @@ function toPublicTokenRecord(record) {
 
 export class ApiToken {
   static hash(token) {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto
+      .pbkdf2Sync(token, TOKEN_HASH_SALT, TOKEN_HASH_ITERATIONS, 64, 'sha512')
+      .toString('hex');
   }
 
   static async #ensureGuild(guildId = DEFAULT_BOOTSTRAP_GUILD_ID) {
