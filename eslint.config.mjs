@@ -4,7 +4,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'docs/site/**'],
+    ignores: ['dist/**', 'coverage/**', 'docs/site/**', '**/.next/**', '**/node_modules/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -18,7 +18,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/**/*.ts', 'tests/**/*.ts'],
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
@@ -27,34 +27,8 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
+      'no-undef': 'off',
     },
   },
   eslintConfigPrettier,
 );
-import js from '@eslint/js';
-import tsParser from '@typescript-eslint/parser';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-
-export default [
-  {
-    ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/coverage/**']
-  },
-  js.configs.recommended,
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module'
-      }
-    },
-    plugins: {
-      '@typescript-eslint': tsPlugin
-    },
-    rules: {
-      ...tsPlugin.configs.recommended.rules,
-      "no-undef": "off"
-    }
-  }
-];
