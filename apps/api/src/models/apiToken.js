@@ -3,7 +3,8 @@ import { db } from '@packages/db';
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const DEFAULT_BOOTSTRAP_GUILD_ID = process.env.API_TOKEN_GUILD_ID || 'bootstrap-guild';
-const DEFAULT_BOOTSTRAP_GUILD_NAME = process.env.API_TOKEN_GUILD_NAME || 'ERLCPANEL Bootstrap Guild';
+const DEFAULT_BOOTSTRAP_GUILD_NAME =
+  process.env.API_TOKEN_GUILD_NAME || 'ERLCPANEL Bootstrap Guild';
 const TOKEN_HASH_SALT = 'api-token-hash-v1';
 const TOKEN_HASH_ITERATIONS = 100_000;
 
@@ -17,7 +18,7 @@ function toPublicTokenRecord(record) {
     createdAt: record.createdAt.toISOString(),
     expiresAt: record.expiresAt?.toISOString() ?? null,
     revokedAt: record.revokedAt?.toISOString() ?? null,
-    lastUsedAt: record.lastUsedAt?.toISOString() ?? null
+    lastUsedAt: record.lastUsedAt?.toISOString() ?? null,
   };
 }
 
@@ -32,13 +33,19 @@ export class ApiToken {
     await db.guild.upsert({
       where: { id: guildId },
       create: { id: guildId, name: DEFAULT_BOOTSTRAP_GUILD_NAME },
-      update: {}
+      update: {},
     });
 
     return guildId;
   }
 
-  static async create({ guildId = DEFAULT_BOOTSTRAP_GUILD_ID, label = 'default', scopes = ['read'], ttlMs = TOKEN_TTL_MS, rawToken } = {}) {
+  static async create({
+    guildId = DEFAULT_BOOTSTRAP_GUILD_ID,
+    label = 'default',
+    scopes = ['read'],
+    ttlMs = TOKEN_TTL_MS,
+    rawToken,
+  } = {}) {
     const tokenValue = rawToken || crypto.randomBytes(24).toString('hex');
     const tokenHash = this.hash(tokenValue);
 
@@ -49,8 +56,8 @@ export class ApiToken {
         name: label,
         scopes,
         tokenHash,
-        expiresAt: ttlMs > 0 ? new Date(Date.now() + ttlMs) : null
-      }
+        expiresAt: ttlMs > 0 ? new Date(Date.now() + ttlMs) : null,
+      },
     });
 
     return { record: toPublicTokenRecord(created), rawToken: tokenValue };
@@ -67,7 +74,7 @@ export class ApiToken {
 
     const updated = await db.apiToken.update({
       where: { id: match.id },
-      data: { lastUsedAt: new Date() }
+      data: { lastUsedAt: new Date() },
     });
 
     return toPublicTokenRecord(updated);
@@ -79,7 +86,7 @@ export class ApiToken {
 
     const updated = await db.apiToken.update({
       where: { id },
-      data: { revokedAt: new Date() }
+      data: { revokedAt: new Date() },
     });
 
     return toPublicTokenRecord(updated);
@@ -87,7 +94,7 @@ export class ApiToken {
 
   static async list() {
     const tokens = await db.apiToken.findMany({
-      orderBy: [{ createdAt: 'desc' }]
+      orderBy: [{ createdAt: 'desc' }],
     });
 
     return tokens.map(toPublicTokenRecord);
@@ -106,7 +113,7 @@ export class ApiToken {
       label: process.env.BOOTSTRAP_API_TOKEN_LABEL || 'bootstrap-admin',
       scopes: ['read', 'write', 'admin'],
       ttlMs: Number(process.env.BOOTSTRAP_API_TOKEN_TTL_MS || 0),
-      rawToken: bootstrapToken
+      rawToken: bootstrapToken,
     });
 
     return { record, rawToken: bootstrapToken, created: true };

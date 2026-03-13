@@ -10,7 +10,7 @@ export function paginate(items, page = 1, limit = 25) {
       page: safePage,
       limit: safeLimit,
       total: items.length,
-      totalPages: Math.max(1, Math.ceil(items.length / safeLimit))
-    }
+      totalPages: Math.max(1, Math.ceil(items.length / safeLimit)),
+    },
   };
 }

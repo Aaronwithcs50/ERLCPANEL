@@ -13,7 +13,7 @@ export function sendSuccess(res, payload, options = {}) {
     success: true,
     data: payload,
     pagination,
-    traceId: res.getHeader('x-request-id')
+    traceId: res.getHeader('x-request-id'),
   });
 }
 
@@ -24,8 +24,8 @@ export function sendError(res, code, message, options = {}) {
     error: {
       code,
       message,
-      details
+      details,
     },
-    traceId: res.getHeader('x-request-id')
+    traceId: res.getHeader('x-request-id'),
   });
 }

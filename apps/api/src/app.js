@@ -14,7 +14,9 @@ export function createApiApp() {
 
   app.use('/v1', authMiddleware, rateLimitMiddleware, routes);
 
-  app.use((req, res) => sendError(res, 'NOT_FOUND', `Route ${req.path} not found`, { status: 404 }));
+  app.use((req, res) =>
+    sendError(res, 'NOT_FOUND', `Route ${req.path} not found`, { status: 404 }),
+  );
 
   app.use((err, _req, res, _next) => {
     console.error(err);

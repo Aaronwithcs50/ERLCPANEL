@@ -6,13 +6,13 @@ const config = {
   roles: {
     admin: 'role_admin',
     moderator: 'role_mod',
-    trainee: 'role_trainee'
+    trainee: 'role_trainee',
   },
   channels: {
     logs: 'channel_logs',
     shifts: 'channel_shifts',
-    appeals: 'channel_appeals'
-  }
+    appeals: 'channel_appeals',
+  },
 };
 
 function assertBackendAvailable() {
@@ -31,7 +31,7 @@ export const configService = {
     const configuration = await this.getConfiguration();
     return {
       roles: configuration.roles,
-      channels: configuration.channels
+      channels: configuration.channels,
     };
-  }
+  },
 };

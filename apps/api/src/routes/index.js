@@ -59,7 +59,11 @@ function validateTokenRequestBody(body) {
     return 'Body parameter "label" must be a non-empty string';
   }
 
-  if (scopes !== undefined && (!Array.isArray(scopes) || scopes.some((scope) => typeof scope !== 'string' || scope.length === 0))) {
+  if (
+    scopes !== undefined &&
+    (!Array.isArray(scopes) ||
+      scopes.some((scope) => typeof scope !== 'string' || scope.length === 0))
+  ) {
     return 'Body parameter "scopes" must be an array of non-empty strings';
   }
 
@@ -72,18 +76,23 @@ function validateTokenRequestBody(body) {
 
 function handleServiceError(res, error) {
   if (error instanceof BackendUnavailableError) {
-    return sendError(res, 'BACKEND_UNAVAILABLE', `${error.service} service backend is unavailable`, {
-      status: 503,
-      details: {
-        service: error.service,
-        backend: error.backend
-      }
-    });
+    return sendError(
+      res,
+      'BACKEND_UNAVAILABLE',
+      `${error.service} service backend is unavailable`,
+      {
+        status: 503,
+        details: {
+          service: error.service,
+          backend: error.backend,
+        },
+      },
+    );
   }
 
   return sendError(res, 'INTERNAL_ERROR', 'Unexpected service failure', {
     status: 500,
-    details: { message: error.message }
+    details: { message: error.message },
   });
 }
 
@@ -97,7 +106,7 @@ router.get('/moderation/history', async (req, res) => {
     const records = await moderationService.getHistory({
       action: req.query.action,
       moderator: req.query.moderator,
-      target: req.query.target
+      target: req.query.target,
     });
     const { data, pagination } = paginate(records, req.query.page, req.query.limit);
     return sendSuccess(res, data, { pagination });
@@ -116,7 +125,7 @@ router.get('/moderation/statistics', async (req, res) => {
     const stats = await moderationService.getStatistics({
       action: req.query.action,
       moderator: req.query.moderator,
-      target: req.query.target
+      target: req.query.target,
     });
     return sendSuccess(res, stats);
   } catch (error) {
@@ -133,7 +142,7 @@ router.get('/shifts/history', async (req, res) => {
   try {
     const records = await shiftService.getEvents({
       type: req.query.type,
-      userId: req.query.userId
+      userId: req.query.userId,
     });
     const { data, pagination } = paginate(records, req.query.page, req.query.limit);
     return sendSuccess(res, data, { pagination });
@@ -151,7 +160,7 @@ router.get('/shifts/events', async (req, res) => {
   try {
     const records = await shiftService.getEvents({
       type: req.query.type,
-      userId: req.query.userId
+      userId: req.query.userId,
     });
     const { data, pagination } = paginate(records, req.query.page, req.query.limit);
     return sendSuccess(res, data, { pagination });
@@ -164,7 +173,7 @@ router.get('/activity/summaries', (_req, res) => {
   return sendSuccess(res, {
     activeStaff: 12,
     shiftsToday: 34,
-    moderationActionsToday: 9
+    moderationActionsToday: 9,
   });
 });
 
@@ -179,8 +188,8 @@ router.get('/activity/reports/yearly/:year', (req, res) => {
     totals: {
       shifts: 4300,
       moderationActions: 1200,
-      incidentReports: 84
-    }
+      incidentReports: 84,
+    },
   });
 });
 

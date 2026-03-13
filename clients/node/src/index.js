@@ -33,15 +33,18 @@ export class ErlcPanelClient {
         method,
         headers: {
           authorization: `Bearer ${this.token}`,
-          'content-type': 'application/json'
+          'content-type': 'application/json',
         },
-        body: body ? JSON.stringify(body) : undefined
+        body: body ? JSON.stringify(body) : undefined,
       });
 
       const payload = await response.json();
       if (response.ok) return payload;
 
-      const shouldRetry = this.retryMethods.has(method) && [429, 503].includes(response.status) && attempt < this.maxRetries;
+      const shouldRetry =
+        this.retryMethods.has(method) &&
+        [429, 503].includes(response.status) &&
+        attempt < this.maxRetries;
       if (shouldRetry) {
         const retryAfter = Number(response.headers.get('retry-after') || 1);
         await sleep(retryAfter * 1000);
@@ -53,7 +56,7 @@ export class ErlcPanelClient {
         status: response.status,
         code: payload?.error?.code,
         traceId: payload?.traceId,
-        details: payload?.error?.details
+        details: payload?.error?.details,
       });
     }
   }
@@ -68,15 +71,37 @@ export class ErlcPanelClient {
     }
   }
 
-  moderationHistory(query) { return this.request('GET', '/v1/moderation/history', { query }); }
-  moderationStatistics() { return this.request('GET', '/v1/moderation/statistics'); }
-  shiftHistory(query) { return this.request('GET', '/v1/shifts/history', { query }); }
-  shiftEvents(query) { return this.request('GET', '/v1/shifts/events', { query }); }
-  activitySummaries() { return this.request('GET', '/v1/activity/summaries'); }
-  yearlyReport(year) { return this.request('GET', `/v1/activity/reports/yearly/${year}`); }
-  serverConfiguration() { return this.request('GET', '/v1/server/configuration'); }
-  serverMappings() { return this.request('GET', '/v1/server/mappings'); }
-  listTokens() { return this.request('GET', '/v1/tokens'); }
-  createToken(body) { return this.request('POST', '/v1/tokens', { body }); }
-  revokeToken(id) { return this.request('DELETE', `/v1/tokens/${id}`); }
+  moderationHistory(query) {
+    return this.request('GET', '/v1/moderation/history', { query });
+  }
+  moderationStatistics() {
+    return this.request('GET', '/v1/moderation/statistics');
+  }
+  shiftHistory(query) {
+    return this.request('GET', '/v1/shifts/history', { query });
+  }
+  shiftEvents(query) {
+    return this.request('GET', '/v1/shifts/events', { query });
+  }
+  activitySummaries() {
+    return this.request('GET', '/v1/activity/summaries');
+  }
+  yearlyReport(year) {
+    return this.request('GET', `/v1/activity/reports/yearly/${year}`);
+  }
+  serverConfiguration() {
+    return this.request('GET', '/v1/server/configuration');
+  }
+  serverMappings() {
+    return this.request('GET', '/v1/server/mappings');
+  }
+  listTokens() {
+    return this.request('GET', '/v1/tokens');
+  }
+  createToken(body) {
+    return this.request('POST', '/v1/tokens', { body });
+  }
+  revokeToken(id) {
+    return this.request('DELETE', `/v1/tokens/${id}`);
+  }
 }

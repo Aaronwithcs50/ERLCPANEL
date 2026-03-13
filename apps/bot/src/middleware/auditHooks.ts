@@ -1,10 +1,15 @@
-import { Client, TextChannel } from "discord.js";
-import { BotCommand } from "../commands/types.js";
-import { DiscordIntegrationSettingsService } from "../services/discordIntegrationSettingsService.js";
+import { Client, TextChannel } from 'discord.js';
+import { BotCommand } from '../commands/types.js';
+import { DiscordIntegrationSettingsService } from '../services/discordIntegrationSettingsService.js';
 
 export interface AuditHook {
-  onAllowed(userId: string, command: BotCommand, origin: "slash" | "prefix"): Promise<void>;
-  onDenied(userId: string, command: BotCommand, reason: string, origin: "slash" | "prefix"): Promise<void>;
+  onAllowed(userId: string, command: BotCommand, origin: 'slash' | 'prefix'): Promise<void>;
+  onDenied(
+    userId: string,
+    command: BotCommand,
+    reason: string,
+    origin: 'slash' | 'prefix',
+  ): Promise<void>;
 }
 
 export class DiscordAuditHook implements AuditHook {
@@ -13,7 +18,7 @@ export class DiscordAuditHook implements AuditHook {
     private readonly settings: DiscordIntegrationSettingsService,
   ) {}
 
-  async onAllowed(userId: string, command: BotCommand, origin: "slash" | "prefix"): Promise<void> {
+  async onAllowed(userId: string, command: BotCommand, origin: 'slash' | 'prefix'): Promise<void> {
     await this.emit(`✅ ${origin} command **${command.name}** executed by <@${userId}>`);
   }
 
@@ -21,7 +26,7 @@ export class DiscordAuditHook implements AuditHook {
     userId: string,
     command: BotCommand,
     reason: string,
-    origin: "slash" | "prefix",
+    origin: 'slash' | 'prefix',
   ): Promise<void> {
     await this.emit(`🚫 ${origin} command **${command.name}** denied for <@${userId}>: ${reason}`);
   }

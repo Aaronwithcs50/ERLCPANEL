@@ -1,5 +1,5 @@
-import { REST, Routes } from "discord.js";
-import { BotCommand } from "./types.js";
+import { REST, Routes } from 'discord.js';
+import { BotCommand } from './types.js';
 
 export class CommandRegistry {
   private readonly commandsByName = new Map<string, BotCommand>();
@@ -48,16 +48,23 @@ export class CommandRegistry {
       .map(([category, commands]) => {
         const body = commands
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((command) => `• **${command.name}** - ${command.description}\n  Usage: \`${command.usage}\``)
-          .join("\n");
+          .map(
+            (command) =>
+              `• **${command.name}** - ${command.description}\n  Usage: \`${command.usage}\``,
+          )
+          .join('\n');
         return `## ${category}\n${body}`;
       })
-      .join("\n\n");
+      .join('\n\n');
   }
 
-  async registerSlashCommands(token: string, applicationId: string, guildId?: string): Promise<void> {
+  async registerSlashCommands(
+    token: string,
+    applicationId: string,
+    guildId?: string,
+  ): Promise<void> {
     const payload = this.getSlashCommands().map((command) => command.slashData!.toJSON());
-    const rest = new REST({ version: "10" }).setToken(token);
+    const rest = new REST({ version: '10' }).setToken(token);
 
     if (guildId) {
       await rest.put(Routes.applicationGuildCommands(applicationId, guildId), { body: payload });

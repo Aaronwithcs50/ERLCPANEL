@@ -8,26 +8,41 @@ async function main() {
   const result = await ApiToken.provisionBootstrapFromEnv();
 
   if (!result) {
-    throw new Error('Unable to provision bootstrap token. Set BOOTSTRAP_API_TOKEN or allow auto-generation.');
+    throw new Error(
+      'Unable to provision bootstrap token. Set BOOTSTRAP_API_TOKEN or allow auto-generation.',
+    );
   }
 
   if (!result.created) {
-    console.log(JSON.stringify({
-      created: false,
-      message: 'Bootstrap token already exists; no plaintext token returned.',
-      tokenId: result.record.id
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          created: false,
+          message: 'Bootstrap token already exists; no plaintext token returned.',
+          tokenId: result.record.id,
+        },
+        null,
+        2,
+      ),
+    );
     return;
   }
 
   // The plaintext token is printed to stderr to discourage logging it; the structured JSON omits the secret.
   console.error('BOOTSTRAP_API_TOKEN (sensitive, do NOT store in logs):', result.rawToken);
 
-  console.log(JSON.stringify({
-    created: true,
-    tokenInfo: result.record,
-    warning: 'A new bootstrap token has been created. The plaintext token was printed separately and is not stored.'
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        created: true,
+        tokenInfo: result.record,
+        warning:
+          'A new bootstrap token has been created. The plaintext token was printed separately and is not stored.',
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {

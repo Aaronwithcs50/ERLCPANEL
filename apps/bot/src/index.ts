@@ -11,26 +11,26 @@ import {
   Interaction,
   Message,
   Partials,
-} from "discord.js";
-import { CommandRegistry } from "./commands/registry.js";
-import { createHelpCommand } from "./commands/help.js";
-import { CooldownManager } from "./middleware/cooldowns.js";
-import { hasCommandAccess } from "./middleware/rbac.js";
-import { DiscordAuditHook } from "./middleware/auditHooks.js";
-import { DiscordIntegrationSettingsService } from "./services/discordIntegrationSettingsService.js";
-import { moderationCommands } from "./features/moderation/index.js";
-import { shiftsCommands } from "./features/shifts/index.js";
-import { activityCommands } from "./features/activity/index.js";
-import { ticketCommands } from "./features/tickets/index.js";
-import { logger } from "./utils/logger.js";
+} from 'discord.js';
+import { CommandRegistry } from './commands/registry.js';
+import { createHelpCommand } from './commands/help.js';
+import { CooldownManager } from './middleware/cooldowns.js';
+import { hasCommandAccess } from './middleware/rbac.js';
+import { DiscordAuditHook } from './middleware/auditHooks.js';
+import { DiscordIntegrationSettingsService } from './services/discordIntegrationSettingsService.js';
+import { moderationCommands } from './features/moderation/index.js';
+import { shiftsCommands } from './features/shifts/index.js';
+import { activityCommands } from './features/activity/index.js';
+import { ticketCommands } from './features/tickets/index.js';
+import { logger } from './utils/logger.js';
 
 const token = process.env.DISCORD_TOKEN;
 const applicationId = process.env.DISCORD_APPLICATION_ID;
 const guildId = process.env.DISCORD_GUILD_ID;
-const prefix = process.env.DISCORD_PREFIX ?? "!";
+const prefix = process.env.DISCORD_PREFIX ?? '!';
 
 if (!token) {
-  throw new Error("Missing DISCORD_TOKEN");
+  throw new Error('Missing DISCORD_TOKEN');
 }
 
 const client = new Client({
@@ -61,21 +61,21 @@ registry.register(createHelpCommand(registry));
 const cooldowns = new CooldownManager();
 const audit = new DiscordAuditHook(client, settings);
 
-client.once("ready", async () => {
+client.once('ready', async () => {
   if (applicationId) {
     await registry.registerSlashCommands(token, applicationId, guildId);
-    console.log(`Registered slash commands for ${guildId ? "guild" : "global"} scope.`);
+    console.log(`Registered slash commands for ${guildId ? 'guild' : 'global'} scope.`);
   }
   console.log(`Logged in as ${client.user?.tag}`);
 });
 
-client.on("interactionCreate", async (interaction: Interaction) => {
+client.on('interactionCreate', async (interaction: Interaction) => {
   if (!interaction.isChatInputCommand() || !interaction.inCachedGuild()) return;
 
   await executeSlashCommand(interaction);
 });
 
-client.on("messageCreate", async (message: Message) => {
+client.on('messageCreate', async (message: Message) => {
   if (message.author.bot || !message.inGuild() || !message.content.startsWith(prefix)) return;
 
   const [rawName, ...args] = message.content.slice(prefix.length).trim().split(/\s+/);
@@ -94,7 +94,7 @@ client.on("messageCreate", async (message: Message) => {
   const remaining = cooldowns.getRemainingSeconds(message.author.id, command);
   if (remaining > 0) {
     await message.reply(`Please wait ${remaining}s before using this command again.`);
-    await safeAuditDenied(message.author.id, command.name, `Cooldown ${remaining}s`, "prefix");
+    await safeAuditDenied(message.author.id, command.name, `Cooldown ${remaining}s`, 'prefix');
     return;
   }
 
@@ -103,17 +103,17 @@ client.on("messageCreate", async (message: Message) => {
   try {
     await command.handlePrefix({ message, args, settings });
   } catch (error) {
-    logger.commandError("Prefix command execution failed", {
+    logger.commandError('Prefix command execution failed', {
       commandName: command.name,
       userId: message.author.id,
-      origin: "prefix",
+      origin: 'prefix',
       error,
     });
-    await message.reply("Something went wrong while running that command.");
+    await message.reply('Something went wrong while running that command.');
     return;
   }
 
-  await safeAuditAllowed(message.author.id, command.name, "prefix");
+  await safeAuditAllowed(message.author.id, command.name, 'prefix');
 });
 
 async function executeSlashCommand(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -130,34 +130,43 @@ async function executeSlashCommand(interaction: ChatInputCommandInteraction): Pr
 
     const remaining = cooldowns.getRemainingSeconds(interaction.user.id, command);
     if (remaining > 0) {
-      await interaction.reply({ content: `Please wait ${remaining}s before reusing this command.`, ephemeral: true });
-      await safeAuditDenied(interaction.user.id, command.name, `Cooldown ${remaining}s`, "slash");
+      await interaction.reply({
+        content: `Please wait ${remaining}s before reusing this command.`,
+        ephemeral: true,
+      });
+      await safeAuditDenied(interaction.user.id, command.name, `Cooldown ${remaining}s`, 'slash');
       return;
     }
 
     cooldowns.markUsed(interaction.user.id, command);
     await command.handleSlash({ interaction, settings });
-    await safeAuditAllowed(interaction.user.id, command.name, "slash");
+    await safeAuditAllowed(interaction.user.id, command.name, 'slash');
   } catch (error) {
-    logger.commandError("Slash command execution failed", {
+    logger.commandError('Slash command execution failed', {
       commandName: command.name,
       userId: interaction.user.id,
-      origin: "slash",
+      origin: 'slash',
       error,
     });
-    await replyWithSafeSlashFallback(interaction, "Something went wrong while running that command.");
+    await replyWithSafeSlashFallback(
+      interaction,
+      'Something went wrong while running that command.',
+    );
   }
 }
 
-
-async function safeAuditAllowed(userId: string, commandName: string, origin: "slash" | "prefix"): Promise<void> {
+async function safeAuditAllowed(
+  userId: string,
+  commandName: string,
+  origin: 'slash' | 'prefix',
+): Promise<void> {
   const command = registry.getByName(commandName);
   if (!command) return;
 
   try {
     await audit.onAllowed(userId, command, origin);
   } catch (error) {
-    logger.commandError("Audit allow logging failed", {
+    logger.commandError('Audit allow logging failed', {
       commandName,
       userId,
       origin,
@@ -170,7 +179,7 @@ async function safeAuditDenied(
   userId: string,
   commandName: string,
   reason: string,
-  origin: "slash" | "prefix",
+  origin: 'slash' | 'prefix',
 ): Promise<void> {
   const command = registry.getByName(commandName);
   if (!command) return;
@@ -178,7 +187,7 @@ async function safeAuditDenied(
   try {
     await audit.onDenied(userId, command, reason, origin);
   } catch (error) {
-    logger.commandError("Audit deny logging failed", {
+    logger.commandError('Audit deny logging failed', {
       commandName,
       userId,
       origin,
@@ -210,21 +219,24 @@ async function runGuards(
 
   if (!hasCommandAccess(member, command, settings)) {
     if (interaction) {
-      await interaction.reply({ content: "You do not have permission to use this command.", ephemeral: true });
+      await interaction.reply({
+        content: 'You do not have permission to use this command.',
+        ephemeral: true,
+      });
     }
-    await safeAuditDenied(userId, command.name, "RBAC", interaction ? "slash" : "prefix");
+    await safeAuditDenied(userId, command.name, 'RBAC', interaction ? 'slash' : 'prefix');
     return false;
   }
 
   return true;
 }
 
-client.on("error", (error) => {
-  logger.error("Discord client error", { errorStack: error.stack ?? error.message });
+client.on('error', (error) => {
+  logger.error('Discord client error', { errorStack: error.stack ?? error.message });
 });
 
-process.on("unhandledRejection", (reason) => {
-  logger.error("Unhandled rejection", {
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled rejection', {
     errorStack: reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),
   });
 });
