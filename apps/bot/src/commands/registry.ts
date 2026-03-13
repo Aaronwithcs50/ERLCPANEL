@@ -5,10 +5,45 @@ export class CommandRegistry {
   private readonly commandsByName = new Map<string, BotCommand>();
   private readonly aliases = new Map<string, string>();
 
+  private static normalizeName(value: string): string {
+    return value.trim().toLowerCase();
+  }
+
   register(command: BotCommand): void {
-    this.commandsByName.set(command.name, command);
+    const commandName = CommandRegistry.normalizeName(command.name);
+    if (!commandName) {
+      throw new Error('Command name cannot be empty.');
+    }
+
+    const existingCommand = this.commandsByName.get(commandName);
+    if (existingCommand) {
+      throw new Error(`Command "${commandName}" is already registered.`);
+    }
+
+    this.commandsByName.set(commandName, { ...command, name: commandName });
+
     for (const alias of command.aliases ?? []) {
-      this.aliases.set(alias, command.name);
+      const normalizedAlias = CommandRegistry.normalizeName(alias);
+      if (!normalizedAlias) {
+        continue;
+      }
+
+      if (normalizedAlias === commandName) {
+        continue;
+      }
+
+      const existingAlias = this.aliases.get(normalizedAlias);
+      if (existingAlias && existingAlias !== commandName) {
+        throw new Error(
+          `Alias "${normalizedAlias}" is already registered for command "${existingAlias}".`,
+        );
+      }
+
+      if (this.commandsByName.has(normalizedAlias)) {
+        throw new Error(`Alias "${normalizedAlias}" conflicts with an existing command name.`);
+      }
+
+      this.aliases.set(normalizedAlias, commandName);
     }
   }
 
@@ -19,7 +54,8 @@ export class CommandRegistry {
   }
 
   getByName(nameOrAlias: string): BotCommand | undefined {
-    const name = this.aliases.get(nameOrAlias) ?? nameOrAlias;
+    const normalized = CommandRegistry.normalizeName(nameOrAlias);
+    const name = this.aliases.get(normalized) ?? normalized;
     return this.commandsByName.get(name);
   }
 
