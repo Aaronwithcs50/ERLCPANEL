@@ -1,6 +1,6 @@
-import { GuildMember, PermissionFlagsBits } from "discord.js";
-import { BotCommand } from "../commands/types.js";
-import { DiscordIntegrationSettingsService } from "../services/discordIntegrationSettingsService.js";
+import { GuildMember, PermissionFlagsBits } from 'discord.js';
+import { BotCommand } from '../commands/types.js';
+import { DiscordIntegrationSettingsService } from '../services/discordIntegrationSettingsService.js';
 
 export function hasCommandAccess(
   member: GuildMember,

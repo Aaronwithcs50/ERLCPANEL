@@ -12,7 +12,9 @@ export async function authMiddleware(req, res, next) {
   try {
     const validToken = await ApiToken.verify(token);
     if (!validToken) {
-      return sendError(res, 'UNAUTHORIZED', 'Invalid, revoked, or expired API token', { status: 401 });
+      return sendError(res, 'UNAUTHORIZED', 'Invalid, revoked, or expired API token', {
+        status: 401,
+      });
     }
 
     req.apiToken = validToken;

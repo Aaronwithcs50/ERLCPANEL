@@ -1,9 +1,5 @@
-import {
-  ChatInputCommandInteraction,
-  Message,
-  PermissionResolvable,
-} from "discord.js";
-import { DiscordIntegrationSettingsService } from "../services/discordIntegrationSettingsService.js";
+import type { ChatInputCommandInteraction, Message, PermissionResolvable } from 'discord.js';
+import type { DiscordIntegrationSettingsService } from '../services/discordIntegrationSettingsService.js';
 
 export interface CommandContext {
   settings: DiscordIntegrationSettingsService;

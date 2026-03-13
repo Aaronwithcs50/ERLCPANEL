@@ -1,7 +1,7 @@
 type CommandErrorContext = {
   commandName: string;
   userId: string;
-  origin: "slash" | "prefix";
+  origin: 'slash' | 'prefix';
   error: unknown;
 };
 
@@ -15,7 +15,7 @@ const getErrorStack = (error: unknown): string => {
 
 export const logger = {
   error(message: string, context: Record<string, unknown>): void {
-    console.error(JSON.stringify({ level: "error", message, ...context }));
+    console.error(JSON.stringify({ level: 'error', message, ...context }));
   },
 
   commandError(message: string, context: CommandErrorContext): void {
@@ -27,4 +27,3 @@ export const logger = {
     });
   },
 };
-
