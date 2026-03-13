@@ -1,12 +1,11 @@
 # @erlcpanel/db
 
-Prisma-powered ORM package for ERLCPANEL.
+Prisma-powered ORM package for ERLCPANEL using MongoDB.
 
 ## Commands
 
-- `npm run generate` - Generate Prisma client.
-- `npm run migrate:dev` - Create/apply local migrations.
-- `npm run migrate:deploy` - Apply migrations in CI/prod.
+- `npm run build` - Generate Prisma client.
+- `npm run db:push` - Push Prisma schema changes to MongoDB.
 - `npm run seed` - Seed baseline guild/account/member data.
 - `npm run retention` - Prune high-volume event logs using per-guild settings.
 

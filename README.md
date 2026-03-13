@@ -19,8 +19,7 @@ Install these before running anything:
 - **Node.js 20+** (required by the repo engines).
 - **Corepack enabled** (to use the pinned `pnpm` version from `packageManager`).
 - **Git**.
-- **PostgreSQL** (for database-backed features).
-- **Redis** (for caching/rate-limit/session-related features).
+- **MongoDB** (for database-backed features).
 
 ## Full setup (step-by-step)
 
@@ -56,16 +55,15 @@ From the repository root:
 5. **Fill in required values in `.env`**
    - `BOT_TOKEN`, `BOT_CLIENT_ID`, `BOT_GUILD_ID`
    - `API_JWT_SECRET`
-   - `DATABASE_URL`, `SHADOW_DATABASE_URL`
-   - `REDIS_URL`
+   - `DATABASE_URL`
 
-6. **Start PostgreSQL and Redis**
-   - Ensure both services are running and reachable from values in `.env`.
+6. **Start MongoDB**
+   - Ensure MongoDB is running and reachable from `DATABASE_URL` in `.env`.
 
-7. **Run database migrations and seed**
+7. **Push Prisma schema and seed**
 
    ```bash
-   pnpm --filter @packages/db run migrate:dev
+   pnpm --filter @packages/db run db:push
    pnpm --filter @packages/db run seed
    ```
 
@@ -148,7 +146,7 @@ pnpm run prepare
 ### 6) Prepare the database
 
 ```bash
-pnpm --filter @packages/db run migrate:dev
+pnpm --filter @packages/db run db:push
 pnpm --filter @packages/db run seed
 ```
 

@@ -10,8 +10,7 @@
     "lint": "echo 'No lint rules yet for @packages/db'",
     "format": "prettier --write prisma src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
+    "db:push": "prisma db push",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
