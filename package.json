@@ -38,7 +38,9 @@
     "test:all": "pnpm -r run test",
     "lint:all": "pnpm -r run lint",
     "format:all": "pnpm -r run format",
-    "typecheck:all": "pnpm -r run typecheck"
+    "typecheck:all": "pnpm -r run typecheck",
+    "bot:dev": "pnpm --filter @apps/bot run dev",
+    "bot:temp": "pnpm --filter @apps/bot run temp"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs}": [

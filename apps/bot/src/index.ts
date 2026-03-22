@@ -1,8 +1,5 @@
 import 'dotenv/config';
 
-const environment = process.env.APP_ENV ?? 'development';
-
-console.log(`[bot] starting Discord bot in ${environment} mode`);
 import {
   ChatInputCommandInteraction,
   Client,
@@ -14,6 +11,7 @@ import {
 } from 'discord.js';
 import { CommandRegistry } from './commands/registry.js';
 import { createHelpCommand } from './commands/help.js';
+import { resolveBotConfig, buildStartupDiagnostics } from './config.js';
 import { CooldownManager } from './middleware/cooldowns.js';
 import { hasCommandAccess } from './middleware/rbac.js';
 import { DiscordAuditHook } from './middleware/auditHooks.js';
@@ -24,13 +22,16 @@ import { activityCommands } from './features/activity/index.js';
 import { ticketCommands } from './features/tickets/index.js';
 import { logger } from './utils/logger.js';
 
-const token = process.env.DISCORD_TOKEN;
-const applicationId = process.env.DISCORD_APPLICATION_ID;
-const guildId = process.env.DISCORD_GUILD_ID;
-const prefix = process.env.DISCORD_PREFIX ?? '!';
+const config = resolveBotConfig();
 
-if (!token) {
-  throw new Error('Missing DISCORD_TOKEN');
+console.log(`[bot] starting Discord bot in ${config.environment} mode`);
+for (const warning of config.warnings) {
+  console.warn(`[bot] warning: ${warning}`);
+}
+if (config.debugStartup) {
+  for (const line of buildStartupDiagnostics(config)) {
+    console.log(line);
+  }
 }
 
 const client = new Client({
@@ -44,11 +45,11 @@ const client = new Client({
 });
 
 const settings = new DiscordIntegrationSettingsService();
-if (process.env.DISCORD_AUDIT_CHANNEL_ID) {
-  settings.setAuditChannelId(process.env.DISCORD_AUDIT_CHANNEL_ID);
+if (config.auditChannelId) {
+  settings.setAuditChannelId(config.auditChannelId);
 }
-if (process.env.DISCORD_EVENT_CHANNEL_ID) {
-  settings.setEventChannelId(process.env.DISCORD_EVENT_CHANNEL_ID);
+if (config.eventChannelId) {
+  settings.setEventChannelId(config.eventChannelId);
 }
 
 const registry = new CommandRegistry();
@@ -62,10 +63,16 @@ const cooldowns = new CooldownManager();
 const audit = new DiscordAuditHook(client, settings);
 
 client.once('ready', async () => {
-  if (applicationId) {
-    await registry.registerSlashCommands(token, applicationId, guildId);
-    console.log(`Registered slash commands for ${guildId ? 'guild' : 'global'} scope.`);
+  if (config.applicationId) {
+    await registry.registerSlashCommands(config.token, config.applicationId, config.guildId);
+    console.log(`Registered slash commands for ${config.guildId ? 'guild' : 'global'} scope.`);
   }
+
+  if (config.debugStartup) {
+    console.log(`[bot] registered prefix commands=${registry.getPrefixCommands().length}`);
+    console.log(`[bot] registered slash commands=${registry.getSlashCommands().length}`);
+  }
+
   console.log(`Logged in as ${client.user?.tag}`);
 });
 
@@ -76,9 +83,10 @@ client.on('interactionCreate', async (interaction: Interaction) => {
 });
 
 client.on('messageCreate', async (message: Message) => {
-  if (message.author.bot || !message.inGuild() || !message.content.startsWith(prefix)) return;
+  if (message.author.bot || !message.inGuild() || !message.content.startsWith(config.prefix))
+    return;
 
-  const [rawName, ...args] = message.content.slice(prefix.length).trim().split(/\s+/);
+  const [rawName, ...args] = message.content.slice(config.prefix.length).trim().split(/\s+/);
   if (!rawName) return;
 
   const command = registry.getByName(rawName.toLowerCase());
@@ -241,4 +249,4 @@ process.on('unhandledRejection', (reason) => {
   });
 });
 
-client.login(token);
+client.login(config.token);

@@ -22,6 +22,39 @@ Install these before running anything:
 - **PostgreSQL** (for database-backed features).
 - **Redis** (for caching/rate-limit/session-related features).
 
+## Quick start: temporary bot-only run
+
+If you only want to bring up the Discord bot for temporary use, the only required secret is the bot token.
+
+From the repository root:
+
+```bash
+corepack enable
+corepack prepare pnpm@9.0.0 --activate
+pnpm install
+pnpm run bot:temp -- <your-discord-bot-token>
+```
+
+What this does:
+
+- Starts only `apps/bot`.
+- Injects `BOT_TOKEN` for that run so you do not need to create a `.env` file first.
+- Enables startup diagnostics by default for easier debugging.
+- Leaves slash-command registration disabled unless you also provide `BOT_CLIENT_ID` (and optionally `BOT_GUILD_ID`).
+
+Optional environment variables for temporary runs:
+
+- `BOT_CLIENT_ID` – enables slash-command registration.
+- `BOT_GUILD_ID` – makes slash registration immediate for a specific guild.
+- `BOT_PREFIX` – overrides the default prefix of `!`.
+- `BOT_DEBUG_STARTUP=true` – prints extra startup diagnostics.
+
+Example:
+
+```bash
+BOT_CLIENT_ID=123456789012345678 BOT_GUILD_ID=987654321098765432 pnpm run bot:temp -- <your-discord-bot-token>
+```
+
 ## Full setup (step-by-step)
 
 From the repository root:
@@ -54,13 +87,12 @@ From the repository root:
    ```
 
 5. **Fill in required values in `.env`**
-   - `BOT_TOKEN`, `BOT_CLIENT_ID`, `BOT_GUILD_ID`
-   - `API_JWT_SECRET`
-   - `DATABASE_URL`, `SHADOW_DATABASE_URL`
-   - `REDIS_URL`
+   - Required for bot-only temporary use: `BOT_TOKEN`
+   - Optional bot extras: `BOT_CLIENT_ID`, `BOT_GUILD_ID`, `BOT_PREFIX`, `BOT_AUDIT_CHANNEL_ID`, `BOT_EVENT_CHANNEL_ID`
+   - Required for API/database-backed workflows: `API_JWT_SECRET`, `DATABASE_URL`, `SHADOW_DATABASE_URL`, `REDIS_URL`
 
 6. **Start PostgreSQL and Redis**
-   - Ensure both services are running and reachable from values in `.env`.
+   - Only required when running database-backed/API workflows.
 
 7. **Run database migrations and seed**
 
@@ -96,7 +128,7 @@ From the repository root:
 
   ```bash
   pnpm --filter @erlcpanel/api run dev
-  pnpm --filter @apps/bot run dev
+  pnpm run bot:dev
   pnpm --filter @apps/web run dev
   ```
 

@@ -10,7 +10,8 @@
     "test": "echo 'No tests yet for @apps/bot'",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "temp": "node scripts/temp-run.mjs"
   },
   "dependencies": {
     "discord.js": "^14.16.3",
