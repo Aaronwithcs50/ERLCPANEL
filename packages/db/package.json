@@ -1,5 +1,5 @@
 {
-  "name": "@packages/db",
+  "name": "@erlcpanel/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",

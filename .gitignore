@@ -1,4 +1,6 @@
 # Dependencies
+package-lock.json
+**/package-lock.json
 node_modules/
 .pnpm-store/
 

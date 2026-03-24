@@ -24,13 +24,32 @@ import { activityCommands } from './features/activity/index.js';
 import { ticketCommands } from './features/tickets/index.js';
 import { logger } from './utils/logger.js';
 
-const token = process.env.DISCORD_TOKEN;
-const applicationId = process.env.DISCORD_APPLICATION_ID;
-const guildId = process.env.DISCORD_GUILD_ID;
+const token = process.env.BOT_TOKEN ?? process.env.DISCORD_TOKEN;
+const applicationId = process.env.BOT_CLIENT_ID ?? process.env.DISCORD_APPLICATION_ID;
+const guildIds = (process.env.BOT_GUILD_IDS ?? process.env.DISCORD_GUILD_ID ?? '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
 const prefix = process.env.DISCORD_PREFIX ?? '!';
 
-if (!token) {
-  throw new Error('Missing DISCORD_TOKEN');
+const requiredEnv = ['BOT_TOKEN', 'BOT_CLIENT_ID', 'DATABASE_URL', 'REDIS_URL', 'ERLC_SERVER_KEY', 'ERLC_GLOBAL_KEY'];
+const missing = requiredEnv.filter((name) => {
+  const value = process.env[name];
+  return !value || !value.trim();
+});
+
+if (missing.length > 0) {
+  throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+}
+
+const pollingIntervalMs = Number(process.env.ERLC_POLL_INTERVAL_MS ?? 15000);
+if (!Number.isFinite(pollingIntervalMs) || pollingIntervalMs < 1000) {
+  throw new Error('ERLC_POLL_INTERVAL_MS must be a number >= 1000');
+}
+
+const commandRateLimitMs = Number(process.env.ERLC_COMMAND_RATE_LIMIT_MS ?? 5000);
+if (!Number.isFinite(commandRateLimitMs) || commandRateLimitMs < 5000) {
+  throw new Error('ERLC_COMMAND_RATE_LIMIT_MS must be a number >= 5000');
 }
 
 const client = new Client({
@@ -63,10 +82,10 @@ const audit = new DiscordAuditHook(client, settings);
 
 client.once('ready', async () => {
   if (applicationId) {
-    await registry.registerSlashCommands(token, applicationId, guildId);
-    console.log(`Registered slash commands for ${guildId ? 'guild' : 'global'} scope.`);
+    await registry.registerSlashCommands(token, applicationId, guildIds);
+    console.log(`Registered slash commands for ${guildIds.length > 0 ? `${guildIds.length} guild(s)` : 'global'} scope.`);
   }
-  console.log(`Logged in as ${client.user?.tag}`);
+  console.log(`Logged in as ${client.user?.tag} (poll interval: ${pollingIntervalMs}ms, command rate limit: ${commandRateLimitMs}ms)`);
 });
 
 client.on('interactionCreate', async (interaction: Interaction) => {

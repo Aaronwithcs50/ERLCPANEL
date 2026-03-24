@@ -54,10 +54,22 @@ From the repository root:
    ```
 
 5. **Fill in required values in `.env`**
-   - `BOT_TOKEN`, `BOT_CLIENT_ID`, `BOT_GUILD_ID`
+   - `BOT_TOKEN`, `BOT_CLIENT_ID`, `BOT_GUILD_IDS` (comma-separated)
+   - `ERLC_SERVER_KEY`, `ERLC_GLOBAL_KEY`
+   - `ERLC_POLL_INTERVAL_MS`, `ERLC_COMMAND_RATE_LIMIT_MS`
+   - `API_CORS_ORIGIN` (comma-separated allowed origins, use your production domains)
+   - `SENTRY_DSN` and set `SENTRY_ENABLED=true` only after initializing Sentry SDK
    - `API_JWT_SECRET`
    - `DATABASE_URL`, `SHADOW_DATABASE_URL`
    - `REDIS_URL`
+
+
+
+### Important environment notes
+
+- `BOT_COOLDOWN_TTL_MULTIPLIER`: keeps cooldown records in memory for `commandCooldownSeconds * multiplier` to reduce churn while preserving active cooldown checks.
+- `BOT_COOLDOWN_CLEANUP_INTERVAL_MS`: interval for pruning expired cooldown records from memory.
+- `DB_SEED_ENABLED` defaults to `false` and should stay `false` in production.
 
 6. **Start PostgreSQL and Redis**
    - Ensure both services are running and reachable from values in `.env`.
@@ -65,8 +77,8 @@ From the repository root:
 7. **Run database migrations and seed**
 
    ```bash
-   pnpm --filter @packages/db run migrate:dev
-   pnpm --filter @packages/db run seed
+   pnpm --filter @erlcpanel/db run migrate:dev
+   pnpm --filter @erlcpanel/db run seed
    ```
 
 8. **Install Git hooks**
@@ -148,8 +160,8 @@ pnpm run prepare
 ### 6) Prepare the database
 
 ```bash
-pnpm --filter @packages/db run migrate:dev
-pnpm --filter @packages/db run seed
+pnpm --filter @erlcpanel/db run migrate:dev
+pnpm --filter @erlcpanel/db run seed
 ```
 
 ### 7) Start development servers
@@ -184,10 +196,19 @@ pnpm test
 - If format changes are unexpected: run `pnpm run format:fix` and re-check.
 - If env values are ignored: stop/start running terminals after editing `.env`.
 
+## Sentry setup
+
+If you want crash reporting, install and initialize Sentry in each service you run (API and bot), then set:
+
+- `SENTRY_DSN=<your dsn>`
+- `SENTRY_ENABLED=true`
+
+Leave `SENTRY_ENABLED=false` if Sentry SDK is not initialized.
+
 ## Common commands
 
 ```bash
-pnpm run dev            # root TypeScript service (src/server.ts)
+pnpm run dev            # start all workspace dev services
 pnpm run build
 pnpm run start
 pnpm run lint

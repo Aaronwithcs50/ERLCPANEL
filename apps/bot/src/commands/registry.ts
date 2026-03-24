@@ -97,13 +97,17 @@ export class CommandRegistry {
   async registerSlashCommands(
     token: string,
     applicationId: string,
-    guildId?: string,
+    guildIds: string[] = [],
   ): Promise<void> {
     const payload = this.getSlashCommands().map((command) => command.slashData!.toJSON());
     const rest = new REST({ version: '10' }).setToken(token);
 
-    if (guildId) {
-      await rest.put(Routes.applicationGuildCommands(applicationId, guildId), { body: payload });
+    if (guildIds.length > 0) {
+      await Promise.all(
+        guildIds.map((guildId) =>
+          rest.put(Routes.applicationGuildCommands(applicationId, guildId), { body: payload }),
+        ),
+      );
       return;
     }
 
