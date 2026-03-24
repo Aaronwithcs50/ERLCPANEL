@@ -11,10 +11,7 @@ function readNumberEnv(name, fallback) {
 }
 
 const WINDOW_MS = readNumberEnv('API_RATE_LIMIT_WINDOW_MS', DEFAULT_WINDOW_MS);
-const LIMIT = readNumberEnv(
-  'API_RATE_LIMIT_LIMIT',
-  readNumberEnv('API_RATE_LIMIT_MAX', DEFAULT_LIMIT),
-);
+const LIMIT = readNumberEnv('API_RATE_LIMIT_MAX', DEFAULT_LIMIT);
 const STALE_WINDOW_MULTIPLIER = readNumberEnv(
   'API_RATE_LIMIT_STALE_WINDOW_MULTIPLIER',
   DEFAULT_STALE_WINDOW_MULTIPLIER,

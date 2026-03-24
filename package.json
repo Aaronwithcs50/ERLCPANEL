@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx watch src/server.ts",
+    "dev": "pnpm --parallel --filter @erlcpanel/api --filter @apps/bot --filter @apps/web run dev",
     "start": "node dist/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -31,7 +31,7 @@
     "test:contract": "vitest run tests/contract",
     "docs:api": "redoc-cli build docs/api/openapi.yaml --output docs/site/api/index.html",
     "docs:typedoc": "typedoc --entryPointStrategy expand --out docs/site/sdk src",
-    "docs:build": "npm run docs:api && npm run docs:typedoc",
+    "docs:build": "pnpm run docs:api && pnpm run docs:typedoc",
     "prepare": "husky",
     "dev:all": "pnpm -r --parallel run dev",
     "build:all": "pnpm -r run build",
