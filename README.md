@@ -63,8 +63,6 @@ From the repository root:
    - `DATABASE_URL`, `SHADOW_DATABASE_URL`
    - `REDIS_URL`
 
-
-
 ### Important environment notes
 
 - `BOT_COOLDOWN_TTL_MULTIPLIER`: keeps cooldown records in memory for `commandCooldownSeconds * multiplier` to reduce churn while preserving active cooldown checks.
@@ -112,9 +110,9 @@ From the repository root:
   pnpm --filter @apps/web run dev
   ```
 
-## Run in VS Code (everything you need)
+## Run in VS Code (required workflow)
 
-This section is meant to be a complete VS Code workflow.
+Use VS Code as the single workflow for setup, validation, and running services in this repository.
 
 ### 1) Open the project correctly
 
@@ -148,46 +146,27 @@ This section is meant to be a complete VS Code workflow.
 
 - Edit `.env` in VS Code and set real secrets/connection strings.
 
-### 5) Install dependencies in VS Code terminal
+### 5) Install dependencies with a VS Code task
 
-```bash
-corepack enable
-corepack prepare pnpm@9.0.0 --activate
-pnpm install
-pnpm run prepare
-```
+- Open the Command Palette and run: `Tasks: Run Task`.
+- Choose **ERLCPANEL: Install Dependencies**.
 
-### 6) Prepare the database
+### 6) Prepare the database with a VS Code task
 
-```bash
-pnpm --filter ./packages/db run migrate:dev
-pnpm --filter ./packages/db run seed
-```
+- Run task **ERLCPANEL: Database Migrate + Seed**.
 
-### 7) Start development servers
+### 7) Start development servers from VS Code
 
-- One command for all packages:
+- Run task **ERLCPANEL: Dev All** to start everything.
+- Or run the individual tasks **ERLCPANEL: Dev Web**, **ERLCPANEL: Dev API**, and **ERLCPANEL: Dev Bot**.
+- You can also use Run and Debug launch configurations:
+  - **ERLCPANEL: API (Node)**
+  - **ERLCPANEL: Bot (Node)**
+  - **ERLCPANEL: Web (Node)**
 
-  ```bash
-  pnpm run dev:all
-  ```
+### 8) Run checks from VS Code before committing
 
-- Or run services in separate terminals:
-
-  ```bash
-  pnpm --filter @apps/web run dev
-  pnpm --filter @erlcpanel/api run dev
-  pnpm --filter @apps/bot run dev
-  ```
-
-### 8) Use VS Code checks before committing
-
-```bash
-pnpm run lint
-pnpm run format
-pnpm run typecheck
-pnpm test
-```
+- Run task **ERLCPANEL: Validate (lint + format + typecheck + test)**.
 
 ### 9) Troubleshooting in VS Code
 
