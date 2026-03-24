@@ -77,8 +77,8 @@ From the repository root:
 7. **Run database migrations and seed**
 
    ```bash
-   pnpm --filter @erlcpanel/db run migrate:dev
-   pnpm --filter @erlcpanel/db run seed
+   pnpm --filter ./packages/db run migrate:dev
+   pnpm --filter ./packages/db run seed
    ```
 
 8. **Install Git hooks**
@@ -160,8 +160,8 @@ pnpm run prepare
 ### 6) Prepare the database
 
 ```bash
-pnpm --filter @erlcpanel/db run migrate:dev
-pnpm --filter @erlcpanel/db run seed
+pnpm --filter ./packages/db run migrate:dev
+pnpm --filter ./packages/db run seed
 ```
 
 ### 7) Start development servers

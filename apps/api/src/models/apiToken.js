@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { db } from '@erlcpanel/db';
+import { db } from '@packages/db';
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const DEFAULT_BOOTSTRAP_GUILD_ID = process.env.API_TOKEN_GUILD_ID || 'bootstrap-guild';

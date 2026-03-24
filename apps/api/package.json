@@ -16,7 +16,7 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "@erlcpanel/db": "file:../../packages/db"
+    "@packages/db": "file:../../packages/db"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
