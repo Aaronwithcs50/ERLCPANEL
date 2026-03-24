@@ -29,7 +29,7 @@
     "test:integration": "vitest run tests/integration",
     "test:gateway": "vitest run tests/mock-gateway",
     "test:contract": "vitest run tests/contract",
-    "docs:api": "redoc-cli build docs/api/openapi.yaml --output docs/site/api/index.html",
+    "docs:api": "redocly build-docs docs/api/openapi.yaml --output docs/site/api/index.html",
     "docs:typedoc": "typedoc --entryPointStrategy expand --out docs/site/sdk src",
     "docs:build": "pnpm run docs:api && pnpm run docs:typedoc",
     "prepare": "husky",
@@ -75,13 +75,27 @@
     "js-yaml": "^4.1.0",
     "lint-staged": "^15.5.0",
     "prettier": "^3.5.3",
-    "redoc-cli": "^0.13.21",
     "semantic-release": "^24.2.3",
     "supertest": "^7.0.0",
     "tsx": "^4.19.3",
     "typedoc": "^0.28.1",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1",
-    "vitest": "^3.0.8"
+    "vitest": "^3.0.8",
+    "@redocly/cli": "^2.11.1"
+  },
+  "overrides": {
+    "flatted": "^3.4.2",
+    "discord.js": {
+      "undici": "^6.24.0"
+    },
+    "@discordjs/rest": {
+      "undici": "^6.24.0"
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "undici": "6.24.1"
+    }
   }
 }
