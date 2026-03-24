@@ -1,0 +1,72 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ERLCPANEL: Install Dependencies",
+      "type": "shell",
+      "command": "corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm install && pnpm run prepare",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ERLCPANEL: Database Migrate + Seed",
+      "type": "shell",
+      "command": "pnpm --filter ./packages/db run migrate:dev && pnpm --filter ./packages/db run seed",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ERLCPANEL: Validate (lint + format + typecheck + test)",
+      "type": "shell",
+      "command": "pnpm run lint && pnpm run format && pnpm run typecheck && pnpm test",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ERLCPANEL: Dev All",
+      "type": "shell",
+      "command": "pnpm run dev:all",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "ERLCPANEL: Dev API",
+      "type": "shell",
+      "command": "pnpm --filter @erlcpanel/api run dev",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "ERLCPANEL: Dev Web",
+      "type": "shell",
+      "command": "pnpm --filter @apps/web run dev",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "ERLCPANEL: Dev Bot",
+      "type": "shell",
+      "command": "pnpm --filter @apps/bot run dev",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
