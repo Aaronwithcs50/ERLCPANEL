@@ -12,7 +12,13 @@ function assertRequiredEnv(keys) {
   }
 }
 
-assertRequiredEnv(['API_JWT_SECRET', 'DATABASE_URL', 'REDIS_URL', 'ERLC_SERVER_KEY', 'ERLC_GLOBAL_KEY']);
+assertRequiredEnv([
+  'API_JWT_SECRET',
+  'DATABASE_URL',
+  'REDIS_URL',
+  'ERLC_SERVER_KEY',
+  'ERLC_GLOBAL_KEY',
+]);
 
 if (process.env.SENTRY_DSN && process.env.SENTRY_ENABLED !== 'true') {
   console.warn('SENTRY_DSN is set but SENTRY_ENABLED is not true; error reporting is disabled.');

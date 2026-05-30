@@ -32,7 +32,14 @@ const guildIds = (process.env.BOT_GUILD_IDS ?? process.env.DISCORD_GUILD_ID ?? '
   .filter(Boolean);
 const prefix = process.env.DISCORD_PREFIX ?? '!';
 
-const requiredEnv = ['BOT_TOKEN', 'BOT_CLIENT_ID', 'DATABASE_URL', 'REDIS_URL', 'ERLC_SERVER_KEY', 'ERLC_GLOBAL_KEY'];
+const requiredEnv = [
+  'BOT_TOKEN',
+  'BOT_CLIENT_ID',
+  'DATABASE_URL',
+  'REDIS_URL',
+  'ERLC_SERVER_KEY',
+  'ERLC_GLOBAL_KEY',
+];
 const missing = requiredEnv.filter((name) => {
   const value = process.env[name];
   return !value || !value.trim();
@@ -83,9 +90,13 @@ const audit = new DiscordAuditHook(client, settings);
 client.once('ready', async () => {
   if (applicationId) {
     await registry.registerSlashCommands(token, applicationId, guildIds);
-    console.log(`Registered slash commands for ${guildIds.length > 0 ? `${guildIds.length} guild(s)` : 'global'} scope.`);
+    console.log(
+      `Registered slash commands for ${guildIds.length > 0 ? `${guildIds.length} guild(s)` : 'global'} scope.`,
+    );
   }
-  console.log(`Logged in as ${client.user?.tag} (poll interval: ${pollingIntervalMs}ms, command rate limit: ${commandRateLimitMs}ms)`);
+  console.log(
+    `Logged in as ${client.user?.tag} (poll interval: ${pollingIntervalMs}ms, command rate limit: ${commandRateLimitMs}ms)`,
+  );
 });
 
 client.on('interactionCreate', async (interaction: Interaction) => {
