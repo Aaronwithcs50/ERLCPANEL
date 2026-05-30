@@ -13,10 +13,19 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "discord.js": "^14.16.3",
+    "discord.js": "^14.25.1",
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
     "tsx": "^4.19.2"
+  },
+  "overrides": {
+    "flatted": "^3.4.2",
+    "discord.js": {
+      "undici": "^6.24.0"
+    },
+    "@discordjs/rest": {
+      "undici": "^6.24.0"
+    }
   }
 }
