@@ -18,7 +18,7 @@ import { CooldownManager } from './middleware/cooldowns.js';
 import { hasCommandAccess } from './middleware/rbac.js';
 import { DiscordAuditHook } from './middleware/auditHooks.js';
 import { DiscordIntegrationSettingsService } from './services/discordIntegrationSettingsService.js';
-import { moderationCommands } from './features/moderation/index.js';
+import { circleCommands } from './features/circle/index.js';
 import { shiftsCommands } from './features/shifts/index.js';
 import { activityCommands } from './features/activity/index.js';
 import { ticketCommands } from './features/tickets/index.js';
@@ -78,7 +78,7 @@ if (process.env.DISCORD_EVENT_CHANNEL_ID) {
 }
 
 const registry = new CommandRegistry();
-registry.registerMany(moderationCommands);
+registry.registerMany(circleCommands);
 registry.registerMany(shiftsCommands);
 registry.registerMany(activityCommands);
 registry.registerMany(ticketCommands);
@@ -89,7 +89,7 @@ const audit = new DiscordAuditHook(client, settings);
 
 client.once('ready', async () => {
   if (applicationId) {
-    await registry.registerSlashCommands(token, applicationId, guildIds);
+    await registry.registerSlashCommands(token!, applicationId, guildIds);
     console.log(
       `Registered slash commands for ${guildIds.length > 0 ? `${guildIds.length} guild(s)` : 'global'} scope.`,
     );
@@ -146,7 +146,9 @@ client.on('messageCreate', async (message: Message) => {
   await safeAuditAllowed(message.author.id, command.name, 'prefix');
 });
 
-async function executeSlashCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+async function executeSlashCommand(
+  interaction: ChatInputCommandInteraction<'cached'>,
+): Promise<void> {
   const command = registry.getByName(interaction.commandName);
   if (!command?.handleSlash) return;
 
@@ -179,7 +181,7 @@ async function executeSlashCommand(interaction: ChatInputCommandInteraction): Pr
       error,
     });
     await replyWithSafeSlashFallback(
-      interaction,
+      interaction as ChatInputCommandInteraction,
       'Something went wrong while running that command.',
     );
   }
@@ -242,7 +244,7 @@ async function runGuards(
   member: GuildMember,
   userId: string,
   commandName: string,
-  interaction?: ChatInputCommandInteraction,
+  interaction?: ChatInputCommandInteraction<'cached'>,
 ): Promise<boolean> {
   const command = registry.getByName(commandName);
   if (!command) return false;
@@ -271,4 +273,4 @@ process.on('unhandledRejection', (reason) => {
   });
 });
 
-client.login(token);
+client.login(token!);
