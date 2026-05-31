@@ -6,11 +6,11 @@ export interface CommandContext {
 }
 
 export interface SlashCommandContext extends CommandContext {
-  interaction: ChatInputCommandInteraction;
+  interaction: ChatInputCommandInteraction<'cached'>;
 }
 
 export interface PrefixCommandContext extends CommandContext {
-  message: Message;
+  message: Message<true>;
   args: string[];
 }
 
