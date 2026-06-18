@@ -15,11 +15,11 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "express": "^4.22.2",
+    "express": "^5.2.1",
     "@packages/db": "file:../../packages/db"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
+    "@types/express": "^5.0.6",
     "tsx": "^4.19.2"
   }
 }
