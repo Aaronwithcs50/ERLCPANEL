@@ -14,7 +14,7 @@
     "tokens:provision-admin": "node scripts/provision-admin-token.js"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.4.2",
     "express": "^4.22.2",
     "@packages/db": "file:../../packages/db"
   },
